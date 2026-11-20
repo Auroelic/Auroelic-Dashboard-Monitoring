@@ -2,6 +2,25 @@
 
 Real-time server monitoring dashboard. The FastAPI + psutil backend reads data directly from the OS, the frontend is plain HTML/CSS/JS (no build step), data is pushed over WebSocket, and history is stored in SQLite.
 
+## Screenshots
+
+### Overview
+![Overview](screenshots/01-overview.png)
+
+### Active alert (real CPU load)
+![Alerts](screenshots/06-alerts.png)
+
+### Settings (alert thresholds)
+![Settings](screenshots/05-settings.png)
+
+### Time ranges
+| 1 hour | 6 hours | 24 hours |
+|---|---|---|
+| ![1h](screenshots/02-range-1h.png) | ![6h](screenshots/03-range-6h.png) | ![24h](screenshots/04-range-24h.png) |
+
+### Mobile
+<img src="screenshots/07-mobile.png" alt="Mobile" width="320">
+
 ## Running
     cp .env.example .env     # adjust if needed
     ./run.sh                 # creates a venv, installs dependencies, starts the server
