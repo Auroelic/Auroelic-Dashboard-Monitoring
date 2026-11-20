@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auroelic</title>
+<meta name="application-name" content="Auroelic">
+<meta name="description" content="Auroelic: dashboard monitoring server secara real-time">
+<meta name="theme-color" content="#0b0a10">
+<link rel="icon" href="/img/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-16.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Cinzel:wght@500;600&display=swap">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img class="mark" src="/img/mark-96.png" alt="" width="36" height="36"><span>Auroelic</span></div>
+  <div class="meta">
+    <span class="pill" id="status"><i></i><b>Menunggu data</b></span>
+    <span class="pill quiet" id="conn"><i></i><b>Menyambung</b></span>
+    <span class="upd" id="updated">Pembaruan terakhir: -</span>
+    <button class="btn" id="openSettings" aria-label="Pengaturan" data-i="sliders"><span>Pengaturan</span></button>
+  </div>
+</header>
+<main>
+  <section class="strip" id="strip" aria-label="Ringkasan"></section>
+  <div class="bar"><h2>Grafik</h2>
+    <div class="seg" id="range" role="group" aria-label="Rentang waktu">
+      <button data-r="5m" class="on">5 menit</button><button data-r="1h">1 jam</button><button data-r="6h">6 jam</button><button data-r="24h">24 jam</button>
+    </div>
+  </div>
+  <section class="charts">
+    <article class="panel"><h3>Penggunaan CPU</h3><div class="chart" id="c-cpu"></div></article>
+    <article class="panel"><h3>Penggunaan memori</h3><div class="chart" id="c-mem"></div></article>
+    <article class="panel"><h3>Jaringan <span class="lg"><em style="--c:var(--c3)">Unduh</em><em style="--c:var(--c4)">Unggah</em></span></h3><div class="chart" id="c-net"></div></article>
+    <article class="panel"><h3>Riwayat resource <span class="lg"><em style="--c:var(--c1)">CPU</em><em style="--c:var(--c2)">Memori</em><em style="--c:var(--c5)">Disk</em></span></h3><div class="chart" id="c-all"></div></article>
+  </section>
+  <section class="lower">
+    <article class="panel info"><h3>Informasi server</h3><dl id="info"></dl></article>
+    <article class="panel alerts"><h3>Peringatan</h3><ul id="alerts"></ul></article>
+    <article class="panel disks"><h3>Partisi disk</h3><div class="scroll"><table id="disks"></table></div></article>
+  </section>
+</main>
+<dialog id="dlg">
+  <form id="form" method="dialog">
+    <h2>Pengaturan</h2>
+    <p class="hint">Batas penggunaan (%) yang memicu peringatan. Warning harus lebih kecil dari critical.</p>
+    <div class="grid">
+      <span></span><span class="gh">Warning</span><span class="gh">Critical</span>
+      <label for="cpu_warn">CPU</label><input id="cpu_warn" type="number" min="1" max="100" step="1" required><input id="cpu_crit" type="number" min="1" max="100" step="1" required>
+      <label for="mem_warn">Memori</label><input id="mem_warn" type="number" min="1" max="100" step="1" required><input id="mem_crit" type="number" min="1" max="100" step="1" required>
+      <label for="disk_warn">Disk</label><input id="disk_warn" type="number" min="1" max="100" step="1" required><input id="disk_crit" type="number" min="1" max="100" step="1" required>
+    </div>
+    <label class="tk" for="token">Token akses (hanya diperlukan bila server memakai AUROELIC_TOKEN)</label>
+    <input id="token" type="password" autocomplete="off" placeholder="Kosongkan bila tidak dipakai">
+    <p class="err" id="err" role="alert"></p>
+    <div class="act"><button type="button" class="btn" id="cancel">Batal</button><button type="submit" class="btn primary">Simpan perubahan</button></div>
+  </form>
+</dialog>
+<script src="/app.js"></script>
+</body>
+</html>
