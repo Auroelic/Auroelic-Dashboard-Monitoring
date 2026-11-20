@@ -13,5 +13,5 @@ class Thresholds(BaseModel):
     def warn_below_crit(self):
         for m in ("cpu", "mem", "disk"):
             if getattr(self, f"{m}_warn") >= getattr(self, f"{m}_crit"):
-                raise ValueError(f"{m}: batas warning harus lebih kecil dari batas critical")
+                raise ValueError(f"{m}: warning threshold must be lower than critical threshold")
         return self

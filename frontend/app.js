@@ -16,15 +16,15 @@ const U = ['B','KB','MB','GB','TB','PB'];
 const bytes = (n, d = 1) => { n = Math.max(0, n || 0); let i = 0; while (n >= 1024 && i < 5) { n /= 1024; i++; } return (i ? n.toFixed(d) : Math.round(n)) + ' ' + U[i]; };
 const rate = n => bytes(n) + '/s';
 const dur = s => { s = Math.floor(s); const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
-  return [d && d + ' hari', (d || h) && h + ' jam', m + ' mnt'].filter(Boolean).join(' '); };
-const clock = (t, sec) => new Date(t*1000).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', ...(sec ? {second:'2-digit'} : {})});
-const stamp = t => new Date(t*1000).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+  return [d && d + ' d', (d || h) && h + ' h', m + ' min'].filter(Boolean).join(' '); };
+const clock = (t, sec) => new Date(t*1000).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', ...(sec ? {second:'2-digit'} : {})});
+const stamp = t => new Date(t*1000).toLocaleString('en-US', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
 
 const S = {range:'5m', points:[], snap:null, sys:null, th:null, alerts:[], ws:null, retry:0};
 const tok = () => sessionStorage.getItem('auroelic_token') || '';
 async function api(path, opt = {}) {
   const r = await fetch(path, {...opt, headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + tok(), ...(opt.headers || {})}});
-  if (r.status === 401) { openSettings('Token diperlukan untuk mengakses server ini.'); throw new Error('401'); }
+  if (r.status === 401) { openSettings('A token is required to access this server.'); throw new Error('401'); }
   const body = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(Array.isArray(body.detail) ? body.detail.map(d => d.msg).join('; ') : body.detail || r.statusText);
   return body;
@@ -37,35 +37,35 @@ function renderStrip(s) {
   const load = s.cpu.load ? ` | load ${s.cpu.load.join(' ')}` : '';
   $('#strip').innerHTML =
     cell('cpu', 'cpu', 'CPU', s.cpu.percent, `${s.cpu.cores_logical} core${load}`) +
-    cell('mem', 'mem', 'Memori', s.mem.percent, `${bytes(s.mem.used)} dari ${bytes(s.mem.total)}`) +
-    cell('disk', 'disk', 'Disk', s.disk.percent, `${bytes(s.disk.used)} terpakai, ${bytes(s.disk.free)} sisa`) +
-    `<div class="m"><div class="ml">${ic('net')}<span>Jaringan</span></div>
-      <div class="nr"><span>${ic('down')}Unduh</span>${rate(s.net.rx_rate)}</div><div class="nr"><span>${ic('up')}Unggah</span>${rate(s.net.tx_rate)}</div>
-      <div class="ms">Total ${bytes(s.net.rx_total)} masuk, ${bytes(s.net.tx_total)} keluar</div></div>`;
+    cell('mem', 'mem', 'Memory', s.mem.percent, `${bytes(s.mem.used)} of ${bytes(s.mem.total)}`) +
+    cell('disk', 'disk', 'Disk', s.disk.percent, `${bytes(s.disk.used)} used, ${bytes(s.disk.free)} free`) +
+    `<div class="m"><div class="ml">${ic('net')}<span>Network</span></div>
+      <div class="nr"><span>${ic('down')}Download</span>${rate(s.net.rx_rate)}</div><div class="nr"><span>${ic('up')}Upload</span>${rate(s.net.tx_rate)}</div>
+      <div class="ms">Total ${bytes(s.net.rx_total)} in, ${bytes(s.net.tx_total)} out</div></div>`;
 }
 function renderInfo(s) {
   const y = S.sys; if (!y) return;
-  const rows = [['Hostname', y.hostname], ['Sistem operasi', y.os], ['Kernel', y.kernel], ['Alamat IP', y.ip],
-    ['Uptime', s ? dur(s.uptime.seconds) : '-'], ['Reboot terakhir', stamp(y.boot_time)],
-    ['Prosesor', y.cpu_model], ['Jumlah core', `${y.cores_physical} fisik, ${y.cores_logical} logis`],
-    ['Arsitektur', y.arch], ['Total RAM', bytes(y.ram_total)]];
+  const rows = [['Hostname', y.hostname], ['Operating system', y.os], ['Kernel', y.kernel], ['IP address', y.ip],
+    ['Uptime', s ? dur(s.uptime.seconds) : '-'], ['Last boot', stamp(y.boot_time)],
+    ['Processor', y.cpu_model], ['Core count', `${y.cores_physical} physical, ${y.cores_logical} logical`],
+    ['Architecture', y.arch], ['Total RAM', bytes(y.ram_total)]];
   $('#info').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('');
 }
 function renderDisks(s) {
-  $('#disks').innerHTML = '<tr><th>Mount</th><th>Perangkat</th><th>Tipe</th><th class="n">Kapasitas</th><th class="n">Terpakai</th><th class="n">Sisa</th><th class="n">Penggunaan</th></tr>' +
+  $('#disks').innerHTML = '<tr><th>Mount</th><th>Device</th><th>Type</th><th class="n">Capacity</th><th class="n">Used</th><th class="n">Free</th><th class="n">Usage</th></tr>' +
     s.disk.partitions.map(p => `<tr><td>${esc(p.mountpoint)}</td><td>${esc(p.device)}</td><td>${esc(p.fstype)}</td><td class="n">${bytes(p.total)}</td><td class="n">${bytes(p.used)}</td><td class="n">${bytes(p.free)}</td><td class="n">${p.percent.toFixed(1)}%</td></tr>`).join('');
 }
 function renderAlerts() {
   const el = $('#alerts');
-  if (!S.alerts.length) { el.innerHTML = '<li class="none">Belum ada peringatan. Peringatan muncul saat CPU, memori, atau disk melewati batas.</li>'; return; }
+  if (!S.alerts.length) { el.innerHTML = '<li class="none">No alerts yet. Alerts appear when CPU, memory, or disk exceeds a threshold.</li>'; return; }
   el.innerHTML = S.alerts.map(a => `<li class="${a.resolved_ts ? 'done' : a.severity}"><span class="sv"></span>
-    <b>${esc(a.message)}</b><small>${a.severity === 'critical' ? 'Critical' : 'Warning'} | ${stamp(a.ts)} | ${a.resolved_ts ? 'selesai ' + clock(a.resolved_ts) : 'aktif'}</small>
+    <b>${esc(a.message)}</b><small>${a.severity === 'critical' ? 'Critical' : 'Warning'} | ${stamp(a.ts)} | ${a.resolved_ts ? 'resolved ' + clock(a.resolved_ts) : 'active'}</small>
     <small>${esc(a.cause || '')}</small></li>`).join('');
 }
 
 function draw(el, keys, o = {}) {
   const w = el.clientWidth || 300, h = 150, pl = 66, pr = 8, pt = 8, pb = 20, pts = S.points;
-  if (pts.length < 2) { el.innerHTML = '<div class="empty">Mengumpulkan data</div>'; return; }
+  if (pts.length < 2) { el.innerHTML = '<div class="empty">Collecting data</div>'; return; }
   const t0 = pts[0].t, t1 = pts[pts.length-1].t;
   const max = o.max ?? Math.max(1, ...pts.flatMap(p => keys.map(k => p[k.k] || 0))) * 1.15;
   const x = t => pl + (t - t0) / (t1 - t0 || 1) * (w - pl - pr), y = v => pt + (1 - Math.min(v, max) / max) * (h - pt - pb);
@@ -88,16 +88,16 @@ function charts() {
 
 function setStatus(s) {
   const e = $('#status'), names = {online:'Online', warning:'Warning', critical:'Critical'};
-  e.className = 'pill ' + (s || ''); e.querySelector('b').textContent = names[s] || 'Menunggu data';
+  e.className = 'pill ' + (s || ''); e.querySelector('b').textContent = names[s] || 'Waiting for data';
 }
 function setConn(state) {
-  const e = $('#conn'), m = {ok:['online', 'Monitoring terhubung'], retry:['warning', 'Menyambung ulang'], auth:['critical', 'Token diperlukan'], stale:['warning', 'Data tertunda']}[state];
+  const e = $('#conn'), m = {ok:['online', 'Monitoring connected'], retry:['warning', 'Reconnecting'], auth:['critical', 'Token required'], stale:['warning', 'Data delayed']}[state];
   e.className = 'pill quiet ' + m[0]; e.querySelector('b').textContent = m[1];
 }
 function onSnap(s) {
   S.snap = s; S.lastRx = Date.now();
   setStatus(s.status); setConn('ok');
-  $('#updated').textContent = 'Pembaruan terakhir: ' + clock(s.ts, true);
+  $('#updated').textContent = 'Last updated: ' + clock(s.ts, true);
   renderStrip(s); renderInfo(s); renderDisks(s);
   if (S.range === '5m') {
     S.points.push({t:s.ts, cpu:s.cpu.percent, mem:s.mem.percent, disk:s.disk.percent, rx:s.net.rx_rate, tx:s.net.tx_rate});
@@ -118,7 +118,7 @@ function connect() {
   S.ws = ws;
   ws.onopen = () => { S.retry = 0; };
   ws.onmessage = e => { const m = JSON.parse(e.data); if (m.type === 'snapshot') onSnap(m.data); else if (m.type === 'alert') loadAlerts().catch(() => {}); };
-  ws.onclose = ev => { if (ev.code === 4401) { setConn('auth'); openSettings('Token diperlukan untuk mengakses server ini.'); } else setConn('retry');
+  ws.onclose = ev => { if (ev.code === 4401) { setConn('auth'); openSettings('A token is required to access this server.'); } else setConn('retry');
     setTimeout(connect, Math.min(10000, 1000 * 2 ** S.retry++)); };
 }
 

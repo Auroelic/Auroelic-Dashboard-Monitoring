@@ -16,9 +16,9 @@ def _num(name, default, lo, hi, cast=float):
     try:
         val = cast(raw)
     except ValueError:
-        raise SystemExit(f"{name} harus berupa angka, diterima: {raw!r}")
+        raise SystemExit(f"{name} must be a number, got: {raw!r}")
     if not lo <= val <= hi:
-        raise SystemExit(f"{name} harus di antara {lo} dan {hi}")
+        raise SystemExit(f"{name} must be between {lo} and {hi}")
     return val
 
 

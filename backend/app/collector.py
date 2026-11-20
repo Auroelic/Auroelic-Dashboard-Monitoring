@@ -31,7 +31,7 @@ class Collector:
     def _ip():
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.connect(("10.255.255.255", 1))  # tidak mengirim paket, hanya memilih interface
+                s.connect(("10.255.255.255", 1))  # sends no packets, only selects the interface
                 return s.getsockname()[0]
         except OSError:
             for addrs in psutil.net_if_addrs().values():
@@ -82,7 +82,7 @@ class Collector:
             try:
                 u = psutil.disk_usage(p.mountpoint)
             except OSError:
-                continue  # partisi tidak bisa dibaca: dilewati, tidak dipalsukan
+                continue  # unreadable partition: skipped, never faked
             if u.total:
                 seen.add(p.device)
                 parts.append({"device": p.device, "mountpoint": p.mountpoint, "fstype": p.fstype,
@@ -93,7 +93,7 @@ class Collector:
                       "free": u.free, "percent": u.percent}]
         total, used = sum(p["total"] for p in parts), sum(p["used"] for p in parts)
         free = sum(p["free"] for p in parts)
-        # persentase memakai rumus psutil/df: used / (used + free), sehingga konsisten dengan `df`
+        # percentage uses the psutil/df formula: used / (used + free), consistent with `df`
         self._disk = {"total": total, "used": used, "free": free,
                       "percent": round(used / (used + free) * 100, 1) if used + free else 0.0, "partitions": parts}
         self._disk_t = now
@@ -126,7 +126,7 @@ class Collector:
 
     def top_processes(self, by="cpu", n=3):
         key = "cpu_percent" if by == "cpu" else "memory_percent"
-        if by == "cpu":  # penghitung CPU per proses butuh dua titik ukur; panggilan pertama selalu 0.0
+        if by == "cpu":  # per-process CPU needs two measurement points; the first call always returns 0.0
             for p in psutil.process_iter():
                 try:
                     self._procs.setdefault(p.pid, p).cpu_percent()
@@ -147,6 +147,6 @@ class Collector:
 
     def cause(self, metric, snap):
         if metric in ("cpu", "mem"):
-            return "Proses teratas: " + self.top_processes(metric)
+            return "Top processes: " + self.top_processes(metric)
         worst = max(snap["disk"]["partitions"], key=lambda p: p["percent"])
-        return f"Partisi {worst['mountpoint']} terisi {worst['percent']:.1f}%"
+        return f"Partition {worst['mountpoint']} is {worst['percent']:.1f}% full"

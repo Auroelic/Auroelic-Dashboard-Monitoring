@@ -1,9 +1,9 @@
-METRICS = {"cpu": "CPU", "mem": "Memori", "disk": "Disk"}
-HYST = 3  # alert dianggap selesai bila turun HYST poin di bawah batas
+METRICS = {"cpu": "CPU", "mem": "Memory", "disk": "Disk"}
+HYST = 3  # an alert resolves once the value drops HYST points below the threshold
 
 
 class AlertEngine:
-    """Membuka alert bila level bertahan selama `sustain` sampel berturut-turut."""
+    """Opens an alert when the level persists for `sustain` consecutive samples."""
 
     def __init__(self, store, thresholds, sustain=2):
         self.store, self.t, self.sustain = store, thresholds, sustain
@@ -39,7 +39,7 @@ class AlertEngine:
                 del self.open[m]
             if lvl:
                 thr = self.t[f"{m}_{'crit' if lvl == 'critical' else 'warn'}"]
-                msg = f"Penggunaan {METRICS[m]} {v:.1f}% melewati batas {lvl} ({thr:g}%)"
+                msg = f"{METRICS[m]} usage {v:.1f}% exceeded the {lvl} threshold ({thr:g}%)"
                 a = self.store.add_alert(ts, m, lvl, round(v, 1), thr, msg, cause(m))
                 self.open[m] = a
                 events.append({"event": "opened", **a})

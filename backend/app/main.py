@@ -64,7 +64,7 @@ async def sampler():
                 last_prune = t0
                 store.prune()
         except Exception:
-            log.exception("Gagal mengambil sampel")
+            log.exception("Failed to collect sample")
         await asyncio.sleep(max(0.1, cfg.interval - (time.monotonic() - t0)))
 
 
@@ -86,7 +86,7 @@ async def auth(request: Request):
     h = request.headers.get("authorization", "")
     tok = h[7:] if h.lower().startswith("bearer ") else request.headers.get("x-api-key", "")
     if not token_ok(tok):
-        raise HTTPException(401, "Token tidak valid atau belum diisi")
+        raise HTTPException(401, "Invalid or missing token")
 
 
 @app.middleware("http")
@@ -104,8 +104,8 @@ async def security_headers(request: Request, call_next):
 
 @app.exception_handler(Exception)
 async def unhandled(_, exc):
-    log.exception("Error tidak tertangani: %s", exc)
-    return JSONResponse({"detail": "Terjadi kesalahan internal"}, status_code=500)
+    log.exception("Unhandled error: %s", exc)
+    return JSONResponse({"detail": "Internal server error"}, status_code=500)
 
 
 @app.get("/api/health")
@@ -119,7 +119,7 @@ async def health():
 @app.get("/api/snapshot", dependencies=[Depends(auth)])
 async def snapshot():
     if not state["latest"]:
-        raise HTTPException(503, "Sampel pertama belum tersedia")
+        raise HTTPException(503, "First sample is not available yet")
     return state["latest"]
 
 
@@ -161,7 +161,7 @@ async def ws_endpoint(ws: WebSocket):
         if state["latest"]:
             await ws.send_json({"type": "snapshot", "data": state["latest"]})
         while True:
-            await ws.receive_text()  # klien mengirim ping berkala
+            await ws.receive_text()  # client sends periodic pings
     except WebSocketDisconnect:
         pass
     finally:
