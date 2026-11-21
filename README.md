@@ -37,3 +37,11 @@ backend/app: config, collector (psutil), store (SQLite), alerts (engine), main (
 ## Notes
 - Used memory = total - available (excluding cache); disk percentage uses the `df` formula (used/(used+free)).
 - Partitions that cannot be read are skipped, never faked. The cause of CPU/memory alerts is taken from the top processes.
+
+## License
+
+This project is released under the [MIT License](LICENSE). You are free to use, modify, and redistribute the code.
+
+### Branding
+
+The name "Auroelic" and the Auroelic logo/icons are not covered by the MIT License. You may replace them with your own name and icons for your own deployments. If you redistribute a modified version, please do not use the Auroelic name or logo for it.
